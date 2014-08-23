@@ -2,7 +2,7 @@
   "name": "GoodAndBadFrontend",
   "version": "0.0.0",
   "description": "The frontend to BigBlueBox's Global Hack project",
-  "main": "index.js",
+  "main": "server/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,9 +12,14 @@
     "browserify": "^4.2.3",
     "browserify-middleware": "^3.0.1",
     "browserify-shim": "^3.6.0",
+    "dnode": "^1.2.0",
+    "ecstatic": "^0.5.4",
     "ejs": "^1.0.0",
     "express": "^4.8.5",
     "jquery": "^2.1.1",
-    "less-middleware": "^1.0.3"
+    "less": "^1.7.4",
+    "less-middleware": "^1.0.3",
+    "scuttlebutt": "^5.6.8",
+    "shoe": "0.0.15"
   }
 }

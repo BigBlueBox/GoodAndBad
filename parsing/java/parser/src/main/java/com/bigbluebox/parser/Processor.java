@@ -114,6 +114,7 @@ public class Processor {
 		String pos = token.get(PartOfSpeechAnnotation.class);
 		// this is the NER label of the token
 		String namedEntityType = token.get(NamedEntityTagAnnotation.class);
+		// TODO: Save all part-of-speech words to database
 //		System.out.println(word + "\tpos " + pos + ":" + PartOfSpeechLookup.getName(pos)
 //			+ "\tnamed entity " + namedEntityType);
 		currentEntity = detectNEPhrase(currentEntity, word, namedEntityType);
@@ -183,8 +184,6 @@ public class Processor {
     }
 
     private NounPhrase detectNounPhrase(NounPhrase currentNounPhrase, String word, String pos) {
-	// TODO: Throw out any noun phrase with less than 2 words in it
-	// TODO: Fix phrase counts
 	if (!pos.equals("NN") &&  !pos.equals("NNS")) {
 	    if (currentNounPhrase != null && !currentNounPhrase.getPhrase().equals("")) {
 		Integer i = nounPhraseCounts.get(currentNounPhrase.getPhrase());

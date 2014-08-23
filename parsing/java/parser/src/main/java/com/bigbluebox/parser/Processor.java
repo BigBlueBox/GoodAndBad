@@ -35,6 +35,10 @@ public class Processor {
     static Pattern allpunctuation = Pattern.compile("^\\W+$");
     static List<Long> times = new ArrayList<Long>();
     static int fileCount = 0;
+    
+    static Map<String, Integer> corpusWordStemCounts = new HashMap<String, Integer>();
+    static int corpusWordCount = 0;
+    
 
     public Processor(String text, String canonicalPath, StanfordCoreNLP pipeline) {
 	this.canonicalPath = canonicalPath;
@@ -59,7 +63,7 @@ public class Processor {
 	    fileCount++;
 	    times.add(new Long(timeb - timea));
 
-	    // if (fileCount > 50) {
+	    // if (fileCount > 10) {
 	    // average();
 	    // System.exit(1);
 	    // }
@@ -111,11 +115,16 @@ public class Processor {
 		    continue; // skip an all-punctuation word
 		}
 		documentWordCount++;
+		corpusWordCount++;
 		
 		String wordStem = token.get(LemmaAnnotation.class);
 		Integer c = wordStemCounts.get(wordStem);
 		if (c == null) { c = 0; }
 		wordStemCounts.put(wordStem, c+1);
+		
+		c = corpusWordStemCounts.get(wordStem);
+		if (c == null) { c = 0; }
+		corpusWordStemCounts.put(wordStem, c+1);
 		
 		String pos = token.get(PartOfSpeechAnnotation.class);
 		String namedEntityType = token.get(NamedEntityTagAnnotation.class);

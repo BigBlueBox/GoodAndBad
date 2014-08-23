@@ -16,6 +16,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  */
 public class App {
     public static Random random;
+    static int DEBUG = 10;
 
     public static void main(String[] args) throws IOException {
 	random = new Random(1); // same seed during development
@@ -29,6 +30,7 @@ public class App {
 	    System.out.println("\n\n-------- DONE ---------\n\n");
 	}
     }
+
 
     public void start(String path) throws IOException {
 	// creates a StanfordCoreNLP object, with POS tagging, lemmatization,

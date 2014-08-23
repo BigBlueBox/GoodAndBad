@@ -8,7 +8,6 @@ import java.io.IOException;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
 public class DirectoryWalker {
-    int DEBUG = 10;
     File directory;
     StanfordCoreNLP pipeline;
 
@@ -50,7 +49,7 @@ public class DirectoryWalker {
 		}
 		fr.close();
 		Processor processor = new Processor(text.toString(), file.getCanonicalPath(), pipeline);
-		if (processor.fileCount > DEBUG) {
+		if (processor.fileCount > App.DEBUG) {
 		    return;
 		}
 	    }

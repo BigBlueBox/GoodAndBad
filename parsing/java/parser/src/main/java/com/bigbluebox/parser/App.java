@@ -17,6 +17,7 @@ public class App {
 	public static void main(String[] args)  throws IOException {
 		random = new Random(1); // same seed during development
 		
+		MongoManager manager = new MongoManager();
 		App app = new App();
 		if (args.length < 1) {
 			System.out.println("Usage: include a path directory name after the command.\n");

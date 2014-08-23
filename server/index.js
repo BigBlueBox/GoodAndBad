@@ -9,6 +9,8 @@ var dnode = require('dnode');
 
 var app = express();
 
+var Model = require('scuttlebutt/model')
+
 /* 
 	Handler our known static resources 
 */
@@ -47,14 +49,25 @@ app.get('/', function(req, res){
 	Create socket stream and dnode api handler 
 */
 
-var sock = shoe(function (stream) {
+var apiShoe = shoe(function (stream) {
     var d = dnode(require("./api.js"));
     d.pipe(stream).pipe(d);
+});
+
+var s = new Model();
+var modelShoe = shoe(function(stream) {
+	stream.pipe(s.createStream()).pipe(stream);
+});
+
+s.on('update', function(key, value, source) {
+	console.log("Change:", key, " to:", value);
 });
 
 app.use(ecstatic({root: __dirname + '/../public'}));
 
 var listeningApp = app.listen(3000);
-sock.install(listeningApp, '/dnode');
+
+apiShoe.install(listeningApp, '/dnode');
+modelShoe.install(listeningApp, '/model');
 
 console.log('Listening on port 3000');

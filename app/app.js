@@ -5,14 +5,25 @@
 var dnode = require("dnode");
 var shoe = require('shoe');
 
-jQuery(function() {		
-	var stream = shoe('/dnode');
-	var d = dnode();
+var Model = require('scuttlebutt/model');
 
-	d.on('remote', function(remote) {
+jQuery(function() {
+	var a = new Model();
+	window.model = a;
+
+	var modelShoe = shoe('/model');
+	modelShoe.pipe(a.createStream()).pipe(modelShoe);
+
+	a.on('update', function(key, value, source) {
+		console.log("Change:", key, " to:", value);
+	});
+
+	var apiShoe = shoe('/dnode');
+	var apiNode = dnode();
+	apiNode.on('remote', function(remote) {
 		remote.test("hello", function(a) {
 			console.log("response", a);
 		});
 	});
-	d.pipe(stream).pipe(d);
+	apiNode.pipe(apiShoe).pipe(apiNode);
 });

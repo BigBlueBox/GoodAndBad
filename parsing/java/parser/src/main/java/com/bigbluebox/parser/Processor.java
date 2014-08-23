@@ -113,7 +113,6 @@ public class Processor {
 		documentWordCount++;
 		
 		String wordStem = token.get(LemmaAnnotation.class);
-		System.out.println("WordStem " + wordStem);
 		Integer c = wordStemCounts.get(wordStem);
 		if (c == null) { c = 0; }
 		wordStemCounts.put(wordStem, c+1);
@@ -176,6 +175,12 @@ public class Processor {
 	    }
 	}
 
+	for (String wordStem : wordStemCounts.keySet()) {
+	    int count = wordStemCounts.get(wordStem);
+	    System.out.println("WordStem " + wordStem + " count " + count + " / " + documentWordCount
+		    + " = freq " + ((float) count / (float) documentWordCount));
+	}
+	
 	// This is the coreference link graph
 	// Each chain stores a set of mentions that link to each other,
 	// along with a method for getting the most representative mention

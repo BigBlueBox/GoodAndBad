@@ -31,6 +31,7 @@ public class App {
 		// creates a StanfordCoreNLP object, with POS tagging, lemmatization,
 		// named entity recognition, parsing, and coreference resolution
 		Properties props = new Properties();
+		// parse and dcoref are too slow.
 		//props.put("annotators","tokenize, ssplit, pos, lemma, ner, parse, dcoref");
 		props.put("annotators","tokenize, ssplit, pos, lemma, ner");
 		StanfordCoreNLP pipeline = new StanfordCoreNLP(props);

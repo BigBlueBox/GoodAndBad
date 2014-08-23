@@ -16,4 +16,5 @@
   <classpathentry kind="var" path="M2_REPO/de/jollyday/jollyday/0.4.7/jollyday-0.4.7.jar" sourcepath="M2_REPO/de/jollyday/jollyday/0.4.7/jollyday-0.4.7-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/googlecode/efficient-java-matrix-library/ejml/0.23/ejml-0.23.jar" sourcepath="M2_REPO/com/googlecode/efficient-java-matrix-library/ejml/0.23/ejml-0.23-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/edu/stanford/nlp/stanford-corenlp/3.4/stanford-corenlp-3.4-models.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/mongodb/mongo-java-driver/2.12.3/mongo-java-driver-2.12.3.jar" sourcepath="M2_REPO/org/mongodb/mongo-java-driver/2.12.3/mongo-java-driver-2.12.3-sources.jar"/>
 </classpath>

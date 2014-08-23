@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
@@ -15,22 +16,21 @@ import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.semgraph.SemanticGraph;
-import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation;
-import edu.stanford.nlp.trees.Tree;
-import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation;
 import edu.stanford.nlp.util.CoreMap;
 
 public class Processor {
     String canonicalPath;
     String text;
     StanfordCoreNLP pipeline;
+    int documentWordCount = 0;
 
     Map<String, Integer> namedEntityCounts = new HashMap<String, Integer>();
     Map<String, NamedEntity> namedEntities = new HashMap<String, NamedEntity>();
 
     Map<String, Integer> nounPhraseCounts = new HashMap<String, Integer>();
     Map<String, NounPhrase> nounPhrases = new HashMap<String, NounPhrase>();
+    
+    Map<String, Integer> wordStemCounts = new HashMap<String, Integer>();
 
     static Pattern allpunctuation = Pattern.compile("^\\W+$");
     static List<Long> times = new ArrayList<Long>();
@@ -92,7 +92,7 @@ public class Processor {
 
 	// run all Annotators on this text
 	pipeline.annotate(document);
-
+	
 	// these are all the sentences in this document
 	// a CoreMap is essentially a Map that uses class objects as keys and
 	// has values with custom types
@@ -110,9 +110,15 @@ public class Processor {
 		if (punc.matches()) {
 		    continue; // skip an all-punctuation word
 		}
-		// this is the POS tag of the token
+		documentWordCount++;
+		
+		String wordStem = token.get(LemmaAnnotation.class);
+		System.out.println("WordStem " + wordStem);
+		Integer c = wordStemCounts.get(wordStem);
+		if (c == null) { c = 0; }
+		wordStemCounts.put(wordStem, c+1);
+		
 		String pos = token.get(PartOfSpeechAnnotation.class);
-		// this is the NER label of the token
 		String namedEntityType = token.get(NamedEntityTagAnnotation.class);
 		// TODO: Save all part-of-speech words to database
 //		System.out.println(word + "\tpos " + pos + ":" + PartOfSpeechLookup.getName(pos)

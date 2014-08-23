@@ -1,0 +1,11 @@
+{
+  "name": "GoodAndBadFrontend",
+  "version": "0.0.0",
+  "description": "The frontend to BigBlueBox's Global Hack project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Proprietary"
+}

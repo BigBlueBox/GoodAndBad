@@ -51,9 +51,10 @@ var sock = shoe(function (stream) {
     var d = dnode(require("./api.js"));
     d.pipe(stream).pipe(d);
 });
-sock.install(app, '/dnode');
 
 app.use(ecstatic({root: __dirname + '/../public'}));
 
-app.listen(3000);
+var listeningApp = app.listen(3000);
+sock.install(listeningApp, '/dnode');
+
 console.log('Listening on port 3000');

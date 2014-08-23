@@ -7,5 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "Proprietary"
+  "license": "Proprietary",
+  "dependencies": {
+    "browserify-middleware": "^3.0.1",
+    "ejs": "^1.0.0",
+    "express": "^4.8.5",
+    "jquery": "^2.1.1",
+    "less-middleware": "^1.0.3"
+  }
 }

@@ -47,6 +47,7 @@ public class DirectoryWalker {
 				}
 
 				Processor processor = new Processor(text.toString(), file.getCanonicalPath(), pipeline);
+				
 			}
 		}
 

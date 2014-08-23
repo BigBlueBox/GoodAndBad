@@ -1,11 +1,12 @@
 package com.bigbluebox.parser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import edu.stanford.nlp.dcoref.CorefChain;
-import edu.stanford.nlp.dcoref.CorefCoreAnnotations.CorefChainAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
@@ -21,84 +22,208 @@ import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation;
 import edu.stanford.nlp.util.CoreMap;
 
 public class Processor {
-	String canonicalPath;
-	String text;
-	StanfordCoreNLP pipeline;
-	
-	static List<Long> times = new ArrayList<Long>();
-	static int fileCount = 0;
+    String canonicalPath;
+    String text;
+    StanfordCoreNLP pipeline;
 
-	public Processor(String text, String canonicalPath, StanfordCoreNLP pipeline) {
-		this.canonicalPath = canonicalPath;
-		this.text = text;
-		this.pipeline = pipeline;
-		long timea = System.currentTimeMillis();
-		Map<Integer, CorefChain> graph = parseDocument(text);
-		long timeb = System.currentTimeMillis();
-		System.out.println("----- " + canonicalPath + " ------ in " + (timeb - timea) + " ms.");
-		fileCount++;
-		times.add(new Long(timeb - timea));
-		
-		if (fileCount > 50) {
-			average();
-			System.exit(1);
-		}
+    Map<String, Integer> namedEntityCounts = new HashMap<String, Integer>();
+    Map<String, NamedEntity> namedEntities = new HashMap<String, NamedEntity>();
+
+    Map<String, Integer> nounPhraseCounts = new HashMap<String, Integer>();
+    Map<String, NounPhrase> nounPhrases = new HashMap<String, NounPhrase>();
+
+    static Pattern allpunctuation = Pattern.compile("^\\W+$");
+    static List<Long> times = new ArrayList<Long>();
+    static int fileCount = 0;
+
+    public Processor(String text, String canonicalPath, StanfordCoreNLP pipeline) {
+	this.canonicalPath = canonicalPath;
+	this.text = text;
+	text = text.replaceAll("\\.", ". ");
+	this.pipeline = pipeline;
+
+	if (!canonicalPath.endsWith("txt")) {
+	    // System.out.println("Skipping unsupported file format " +
+	    // canonicalPath);
+	    return;
+	}
+	if (!randomSample()) {
+	    return;
 	}
 
-	public static void average() {
-		int cnt = times.size();
-		int sum = 0;
-		for (Long l : times) {
-			sum += l;
+	try {
+	    long timea = System.currentTimeMillis();
+	    parseDocument(text);
+	    long timeb = System.currentTimeMillis();
+	    System.out.println("----- " + canonicalPath + " ------ in " + (timeb - timea) + " ms.");
+	    fileCount++;
+	    times.add(new Long(timeb - timea));
+
+	    // if (fileCount > 50) {
+	    // average();
+	    // System.exit(1);
+	    // }
+
+	} catch (ForeignDocumentException fde) {
+	    System.out.println("---- Skipping " + canonicalPath + " because of foreign language.");
+	}
+    }
+
+    /** Select roughly 1/3000 */
+    public boolean randomSample() {
+	int rand = (int) (App.random.nextInt(3000));
+	return rand == 1;
+    }
+
+    public static void average() {
+	int cnt = times.size();
+	int sum = 0;
+	for (Long l : times) {
+	    sum += l;
+	}
+	System.out.println("Average time for " + cnt + " files = " + (sum / cnt) + " ms.");
+    }
+
+    private void parseDocument(String text) throws ForeignDocumentException {
+	int foreignWords = 0;
+
+	// create an empty Annotation just with the given text
+	Annotation document = new Annotation(text);
+
+	// run all Annotators on this text
+	pipeline.annotate(document);
+
+	// these are all the sentences in this document
+	// a CoreMap is essentially a Map that uses class objects as keys and
+	// has values with custom types
+	List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+	NamedEntity currentEntity = null;
+	NounPhrase currentNounPhrase = null;
+
+	for (CoreMap sentence : sentences) {
+	    // traversing the words in the current sentence
+	    // a CoreLabel is a CoreMap with additional token-specific methods
+	    for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
+		// this is the text of the token
+		String word = token.get(TextAnnotation.class);
+		Matcher punc = allpunctuation.matcher(word);
+		if (punc.matches()) {
+		    continue; // skip an all-punctuation word
 		}
-		System.out.println("Average time for " + cnt + " files = " + (sum / cnt) + " ms.");
+		// this is the POS tag of the token
+		String pos = token.get(PartOfSpeechAnnotation.class);
+		// this is the NER label of the token
+		String namedEntityType = token.get(NamedEntityTagAnnotation.class);
+//		System.out.println(word + "\tpos " + pos + ":" + PartOfSpeechLookup.getName(pos)
+//			+ "\tnamed entity " + namedEntityType);
+		currentEntity = detectNEPhrase(currentEntity, word, namedEntityType);
+		currentNounPhrase = detectNounPhrase(currentNounPhrase, word, pos);
+
+		if (pos.equals("FW")) {
+		    foreignWords++;
+		}
+		if (foreignWords > 10) {
+		    throw new ForeignDocumentException();
+		}
+	    }
+
+	    // The following steps were too slow for practical use.
+
+	    // this is the parse tree of the current sentence
+	    // Tree tree = sentence.get(TreeAnnotation.class);
+	    // System.out.println("Tree " + tree);
+
+	    // this is the Stanford dependency graph of the current sentence
+	    // SemanticGraph dependencies = sentence
+	    // .get(CollapsedCCProcessedDependenciesAnnotation.class);
+	    // System.out.println("SemanticGraph " + dependencies);
 	}
 
-	private Map<Integer, CorefChain> parseDocument(String text) {
-		// create an empty Annotation just with the given text
-		Annotation document = new Annotation(text);
-
-		// run all Annotators on this text
-		pipeline.annotate(document);
-
-		// these are all the sentences in this document
-		// a CoreMap is essentially a Map that uses class objects as keys and
-		// has values with custom types
-		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
-
-		for (CoreMap sentence : sentences) {
-			// traversing the words in the current sentence
-			// a CoreLabel is a CoreMap with additional token-specific methods
-			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
-				// this is the text of the token
-				String word = token.get(TextAnnotation.class);
-				// this is the POS tag of the token
-				String pos = token.get(PartOfSpeechAnnotation.class);
-				// this is the NER label of the token
-				String namedEntity = token.get(NamedEntityTagAnnotation.class);
-//				System.out.println(word + "\tpos " + pos + ":" + PartOfSpeechLookup.getName(pos) + "\tnamed entity " + namedEntity);
-			}
-
-			// this is the parse tree of the current sentence
-			Tree tree = sentence.get(TreeAnnotation.class);
-//			System.out.println("Tree " + tree);
-
-			// this is the Stanford dependency graph of the current sentence
-			SemanticGraph dependencies = sentence
-					.get(CollapsedCCProcessedDependenciesAnnotation.class);
-//			System.out.println("SemanticGraph " + dependencies);
-		}
-
-		// This is the coreference link graph
-		// Each chain stores a set of mentions that link to each other,
-		// along with a method for getting the most representative mention
-		// Both sentence and token offsets start at 1!
-		Map<Integer, CorefChain> graph = document.get(CorefChainAnnotation.class);
-//		for (Integer i : graph.keySet()) {
-//			System.out.println(i + " - " + graph.get(i));
-//		}
-		
-		return graph;
+	// dont lose the last entity in a document
+	if (currentEntity != null) {
+	    Integer i = namedEntityCounts.get(currentEntity.getPhrase());
+	    if (i == null) {
+		i = 0;
+	    }
+	    namedEntityCounts.put(currentEntity.getPhrase(), i + 1);
+	    currentEntity = null;
+	}
+	// also dont lose the last noun phrase
+	if (currentNounPhrase != null) {
+	    Integer i = nounPhraseCounts.get(currentNounPhrase.getPhrase());
+	    if (i == null) {
+		i = 0;
+	    }
+	    nounPhraseCounts.put(currentNounPhrase.getPhrase(), i + 1);
+	    currentNounPhrase = null;
 	}	
-	
+
+	for (NamedEntity entity : namedEntities.values()) {
+	    System.out.println("\tNamedEntity " + entity.getPhrase() + " of type " + entity.getType()
+		    + "\t" + namedEntityCounts.get(entity.getPhrase()) + " times.");
+	}
+	for (NounPhrase nounPhrase : nounPhrases.values()) {
+	    if (nounPhrase.isValid()) {
+        	    System.out.println("\tNounPhrase " + nounPhrase.getPhrase() + "\t"
+        		    + nounPhraseCounts.get(nounPhrase.getPhrase()) + " times.");
+	    }
+	}
+
+	// This is the coreference link graph
+	// Each chain stores a set of mentions that link to each other,
+	// along with a method for getting the most representative mention
+	// Both sentence and token offsets start at 1!
+	// Map<Integer, CorefChain> graph =
+	// document.get(CorefChainAnnotation.class);
+	// for (Integer i : graph.keySet()) {
+	// System.out.println(i + " - " + graph.get(i));
+	// }
+
+	// return graph;
+    }
+
+    private NounPhrase detectNounPhrase(NounPhrase currentNounPhrase, String word, String pos) {
+	// TODO: Throw out any noun phrase with less than 2 words in it
+	// TODO: Fix phrase counts
+	if (!pos.equals("NN") &&  !pos.equals("NNS")) {
+	    if (currentNounPhrase != null && !currentNounPhrase.getPhrase().equals("")) {
+		Integer i = nounPhraseCounts.get(currentNounPhrase.getPhrase());
+		if (i == null) {
+		    i = 0;
+		}
+		nounPhraseCounts.put(currentNounPhrase.getPhrase(), i + 1);
+		nounPhrases.put(currentNounPhrase.getPhrase(), currentNounPhrase);
+		currentNounPhrase = null;
+	    }
+	} else if (pos.equals("NN") || pos.equals("NNS")) {
+	    if (currentNounPhrase == null) {
+		currentNounPhrase = new NounPhrase();
+	    }
+	    currentNounPhrase.append(word, pos);
+	}
+	return currentNounPhrase;
+
+    }
+
+    private NamedEntity detectNEPhrase(NamedEntity currentEntity, String word, String namedEntityType) {
+	if (namedEntityType.equals("O")
+		|| (currentEntity != null && !namedEntityType.equals(currentEntity.getType()))) {
+	    if (currentEntity != null && !currentEntity.getPhrase().equals("")) {
+		Integer i = namedEntityCounts.get(currentEntity.getPhrase());
+		if (i == null) {
+		    i = 0;
+		}
+		namedEntityCounts.put(currentEntity.getPhrase(), i + 1);
+		namedEntities.put(currentEntity.getPhrase(), currentEntity);
+		currentEntity = null;
+	    }
+	} else {
+	    if (currentEntity == null) {
+		currentEntity = new NamedEntity(namedEntityType);
+	    }
+	    currentEntity.append(word);
+	}
+	return currentEntity;
+    }
+
 }

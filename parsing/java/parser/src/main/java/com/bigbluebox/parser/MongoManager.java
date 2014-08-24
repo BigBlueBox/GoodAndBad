@@ -1,7 +1,6 @@
 package com.bigbluebox.parser;
 
 import java.net.UnknownHostException;
-import java.util.ResourceBundle;
 
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -9,7 +8,10 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
 public class MongoManager {
-
+    public static String server;
+    public static String port;
+    public static String dbName;
+    
     public static MongoClient mongoClient;
     public static DB mongoDb;
 
@@ -17,9 +19,8 @@ public class MongoManager {
     public static DBCollection corpusStatisticsCollection;
 
     public MongoManager() throws UnknownHostException {
-	ResourceBundle rb = ResourceBundle.getBundle("mongo");
-	mongoClient = new MongoClient(rb.getString("server"), Integer.valueOf(rb.getString("port")));
-	mongoDb = mongoClient.getDB(rb.getString("dbname"));
+	mongoClient = new MongoClient(server, Integer.valueOf(port));
+	mongoDb = mongoClient.getDB(dbName);
 
 	corpusStatisticsCollection = mongoDb.getCollection("corpusStatisticsCollection");
 	DBObject obj = MongoManager.corpusStatisticsCollection.findOne();

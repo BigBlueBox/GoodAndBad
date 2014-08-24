@@ -30,8 +30,8 @@ public class MongoManager {
 	
 	documents = mongoDb.getCollection("documents");
 	// clear it every time
-	MongoManager.documents.drop();
-	documents = mongoDb.getCollection("documents");
+//	MongoManager.documents.drop();
+//	documents = mongoDb.getCollection("documents");
 
     }
 

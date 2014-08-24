@@ -51,8 +51,8 @@ public class App {
     public static void main(String[] args) throws IOException {
 	random = new Random(1); // same seed during development
 
-	if (args.length < 4) {
-	    System.out.println("Usage: java -jar server port dbname directoryPath numberForSampling\n");
+	if (args.length < 6) {
+	    System.out.println("Usage: java -jar server port dbname directoryPath numberForSampling nameForCorpus\n");
 	} else {
 	    MongoManager.server = args[0];
 	    MongoManager.port = args[1];
@@ -61,20 +61,21 @@ public class App {
 	    MongoManager manager = new MongoManager();
 	    App app = new App();
 
-	    if (args.length == 5) {
-		Integer num = Integer.valueOf(args[4]);
-		if (num != -1) {
-		    NUM_FOR_SAMPLE = num;
-		}
+	    Integer num = Integer.valueOf(args[4]);
+	    if (num != -1) {
+		NUM_FOR_SAMPLE = num;
 	    }
+	    
+	    String corpusName = args[5];
+	    
 	    System.out.println("Looking for files inside " + new File(args[3]).getCanonicalPath()
 		    + " and processing at most " + NUM_FOR_SAMPLE + " files.");
-	    app.start(args[3]);
+	    app.start(args[3], corpusName);
 	    System.out.println("\n\n-------- DONE ---------\n\n");
 	}
     }
 
-    public void start(String path) throws IOException {
+    public void start(String path, String corpusName) throws IOException {
 	DirectoryWalker.basePath = path;
 
 	// creates a StanfordCoreNLP object, with POS tagging, lemmatization,
@@ -86,7 +87,7 @@ public class App {
 	StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 
 	File dir = new File(path);
-	DirectoryWalker walker = new DirectoryWalker(dir, pipeline);
+	DirectoryWalker walker = new DirectoryWalker(dir, pipeline, corpusName);
 	walker.process();
 
 	// ----- corpus level summary -------

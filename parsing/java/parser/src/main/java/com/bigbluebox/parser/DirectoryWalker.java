@@ -12,8 +12,9 @@ public class DirectoryWalker {
     
     File directory;
     StanfordCoreNLP pipeline;
+    String corpusName;
 
-    public DirectoryWalker(File directory, StanfordCoreNLP pipeline) {
+    public DirectoryWalker(File directory, StanfordCoreNLP pipeline, String corpusName) {
 	this.directory = directory;
 	this.pipeline = pipeline;
     }
@@ -33,7 +34,7 @@ public class DirectoryWalker {
 	}
 	for (File file : files) {
 	    if (file.isDirectory()) {
-		DirectoryWalker walker = new DirectoryWalker(file, pipeline);
+		DirectoryWalker walker = new DirectoryWalker(file, pipeline, corpusName);
 		walker.process();
 	    } else {
 		long size = file.length();
@@ -50,7 +51,7 @@ public class DirectoryWalker {
 		    text.append(line);
 		}
 		fr.close();
-		Processor processor = new Processor(text.toString(), basePath, file.getCanonicalPath(), pipeline);
+		Processor processor = new Processor(text.toString(), basePath, file.getCanonicalPath(), pipeline, corpusName);
 		if (App.DEBUG_STOP_AFTER != -1 && Processor.fileCount > App.DEBUG_STOP_AFTER) {
 		    return;
 		}

@@ -36,6 +36,7 @@ import edu.stanford.nlp.util.CoreMap;
 public class Processor {
     String canonicalPath;
     String text;
+    String corpusName;
     StanfordCoreNLP pipeline;
     int documentWordCount = 0;
 
@@ -77,8 +78,9 @@ public class Processor {
 	return new File(canonicalPath).getName();
     }
 
-    public Processor(String text, String basePath, String canonicalPath, StanfordCoreNLP pipeline) {
+    public Processor(String text, String basePath, String canonicalPath, StanfordCoreNLP pipeline, String corpusName) {
 	this.canonicalPath = canonicalPath;
+	this.corpusName = corpusName;
 	
 	this.text = text;
 	text = text.replaceAll("\\.", ". ");
@@ -177,11 +179,7 @@ public class Processor {
 
 	BasicDBObject documentDBO = new BasicDBObject("path", path);
 	documentDBO.append("filename", filename);
-	if (path.contains("/")) {
-	    documentDBO.append("corpus", path.substring(0, path.indexOf("/")));
-	} else {
-	    documentDBO.append("corpus", path);
-	}
+	documentDBO.append("corpus", corpusName);
 
 	List<BasicDBObject> sentenceDBOs = new ArrayList<BasicDBObject>();
 	documentDBO.append("sentences", sentenceDBOs);

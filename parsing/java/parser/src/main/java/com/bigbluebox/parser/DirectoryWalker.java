@@ -17,6 +17,7 @@ public class DirectoryWalker {
     public DirectoryWalker(File directory, StanfordCoreNLP pipeline, String corpusName) {
 	this.directory = directory;
 	this.pipeline = pipeline;
+	this.corpusName = corpusName;
     }
 
     public void setSource(File file) throws IOException {

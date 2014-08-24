@@ -174,6 +174,11 @@ public class Processor {
 
 	BasicDBObject documentDBO = new BasicDBObject("path", path);
 	documentDBO.append("filename", filename);
+	if (path.contains("/")) {
+	    documentDBO.append("corpus", path.substring(0, path.indexOf("/")));
+	} else {
+	    documentDBO.append("corpus", path);
+	}
 
 	List<BasicDBObject> sentenceDBOs = new ArrayList<BasicDBObject>();
 	documentDBO.append("sentences", sentenceDBOs);

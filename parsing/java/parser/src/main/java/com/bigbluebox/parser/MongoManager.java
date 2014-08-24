@@ -15,23 +15,23 @@ public class MongoManager {
     public static MongoClient mongoClient;
     public static DB mongoDb;
 
-    public static DBCollection documentCollection;
-    public static DBCollection corpusStatisticsCollection;
+    public static DBCollection documents;
+//    public static DBCollection corpusStatisticsCollection;
 
     public MongoManager() throws UnknownHostException {
 	mongoClient = new MongoClient(server, Integer.valueOf(port));
 	mongoDb = mongoClient.getDB(dbName);
 
-	corpusStatisticsCollection = mongoDb.getCollection("corpusStatisticsCollection");
-	DBObject obj = MongoManager.corpusStatisticsCollection.findOne();
-	if (obj != null) { 
-	    MongoManager.corpusStatisticsCollection.remove(obj);
-	}
+//	corpusStatisticsCollection = mongoDb.getCollection("corpusStatisticsCollection");
+//	DBObject obj = MongoManager.corpusStatisticsCollection.findOne();
+//	if (obj != null) { 
+//	    MongoManager.corpusStatisticsCollection.remove(obj);
+//	}
 	
-	documentCollection = mongoDb.getCollection("documentCollection");
+	documents = mongoDb.getCollection("documents");
 	// clear it every time
-	MongoManager.documentCollection.drop();
-	documentCollection = mongoDb.getCollection("documentCollection");
+	MongoManager.documents.drop();
+	documents = mongoDb.getCollection("documents");
 
     }
 

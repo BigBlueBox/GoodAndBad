@@ -131,7 +131,7 @@ public class Processor {
     // MongoDB Structure for a document.
 // @formatter:off 
 /*
-    documentCollection: list of documents {
+    documents: list of documents {
 	  path=
 	  filename=
 	  wordCount=
@@ -341,7 +341,7 @@ public class Processor {
 
 	// return graph;
 	
-	MongoManager.documentCollection.insert(documentDBO);
+	MongoManager.documents.insert(documentDBO);
 	
     }
 

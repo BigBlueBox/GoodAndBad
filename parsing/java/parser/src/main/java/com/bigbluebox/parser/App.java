@@ -46,7 +46,7 @@ public class App {
 
     // these two control the random sampling sample size
     static int TOTAL_NUM_FILES = 295000;
-    static int NUM_FOR_SAMPLE = 100;
+    static int NUM_FOR_SAMPLE = 1000;
 
     public static void main(String[] args) throws IOException {
 	random = new Random(1); // same seed during development
@@ -62,14 +62,14 @@ public class App {
 	    App app = new App();
 
 	    Integer num = Integer.valueOf(args[4]);
-	    if (num != -1) {
+	    if (num == -1) {
 		NUM_FOR_SAMPLE = num;
 	    }
 	    
 	    String corpusName = args[5];
 	    
 	    System.out.println("Looking for files inside " + new File(args[3]).getCanonicalPath()
-		    + " and processing at most " + NUM_FOR_SAMPLE + " files.");
+		    + (NUM_FOR_SAMPLE == -1 ? " and processing all files " : " and processing at most " + NUM_FOR_SAMPLE + " files."));
 	    app.start(args[3], corpusName);
 	    System.out.println("\n\n-------- DONE ---------\n\n");
 	}

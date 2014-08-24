@@ -60,14 +60,15 @@ public class App {
 
 	    MongoManager manager = new MongoManager();
 	    App app = new App();
-	    
+
 	    if (args.length == 5) {
 		Integer num = Integer.valueOf(args[4]);
 		if (num != -1) {
 		    NUM_FOR_SAMPLE = num;
 		}
 	    }
-
+	    System.out.println("Looking for files inside " + new File(args[3]).getCanonicalPath()
+		    + " and processing at most " + NUM_FOR_SAMPLE + " files.");
 	    app.start(args[3]);
 	    System.out.println("\n\n-------- DONE ---------\n\n");
 	}

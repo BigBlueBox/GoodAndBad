@@ -48,6 +48,7 @@ public class Processor {
     Map<String, Integer> wordStemCounts = new HashMap<String, Integer>();
 
     static Pattern allpunctuation = Pattern.compile("^\\W+$");
+    static Pattern digit = Pattern.compile("\\d");
     static List<Long> times = new ArrayList<Long>();
     static int fileCount = 0;
 
@@ -191,6 +192,8 @@ public class Processor {
 	    sentenceDBOs.add(sentenceDBO);
 	    List<BasicDBObject> wordDBOs = new ArrayList<BasicDBObject>();
 	    sentenceDBO.append("words", wordDBOs);
+	    
+	    NounVerbObject nvo = new NounVerbObject();
 
 	    // traversing the words in the current sentence
 	    // a CoreLabel is a CoreMap with additional token-specific methods
@@ -198,6 +201,16 @@ public class Processor {
 
 		// this is the text of the token
 		String word = token.get(TextAnnotation.class);
+		if (word.indexOf(",") != -1) {
+		    word = word.replaceAll(",", "");
+		}
+		if (digit.matcher(word).matches()) {
+		    continue; // skip numeric junk
+		}
+		if (word.equals("'s")) {
+		    continue; // skip
+		}
+		
 		BasicDBObject wordDBO = new BasicDBObject("word", word);
 		wordDBOs.add(wordDBO);
 
@@ -238,9 +251,10 @@ public class Processor {
 		}
 		wordDBO.append("wordStem", wordStem);
 		wordDBO.append("partOfSpeech", pos);
-
+		
+		nvo.addPOS(wordStem, pos);
 	    }
-
+	    sentenceDBO.append("nounVerbObject", nvo.toString());
 	    // The following steps were too slow for practical use.
 
 	    // this is the parse tree of the current sentence
@@ -270,11 +284,11 @@ public class Processor {
 	}
 	// also dont lose the last noun phrase
 	if (currentNounPhrase != null) {
-	    Integer i = nounPhraseCounts.get(currentNounPhrase.getPhrase());
+	    Integer i = nounPhraseCounts.get(currentNounPhrase.getPhraseJoined());
 	    if (i == null) {
 		i = 0;
 	    }
-	    nounPhraseCounts.put(currentNounPhrase.getPhrase(), i + 1);
+	    nounPhraseCounts.put(currentNounPhrase.getPhraseJoined(), i + 1);
 	    currentNounPhrase = null;
 	}
 
@@ -333,8 +347,8 @@ public class Processor {
 		if (i == null) {
 		    i = 0;
 		}
-		nounPhraseCounts.put(currentNounPhrase.getPhrase(), i + 1);
-		nounPhrases.put(currentNounPhrase.getPhrase(), currentNounPhrase);
+		nounPhraseCounts.put(currentNounPhrase.getPhraseJoined(), i + 1);
+		nounPhrases.put(currentNounPhrase.getPhraseJoined(), currentNounPhrase);
 		currentNounPhrase = null;
 	    }
 	} else if (pos.equals("NN") || pos.equals("NNS")) {

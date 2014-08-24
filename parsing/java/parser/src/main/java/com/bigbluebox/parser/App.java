@@ -19,7 +19,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  */
 public class App {
     public static Random random;
-    static int DEBUG = 10;
+    static int DEBUG = 20;
 
     public static void main(String[] args) throws IOException {
 	random = new Random(1); // same seed during development

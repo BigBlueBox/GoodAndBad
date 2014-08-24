@@ -15,7 +15,10 @@ public class NounPhrase {
 	partsOfSpeech.add(pos);
     }
 
-    public String getPhrase() {
+    public List<String> getPhrase() {
+	return words;
+    }
+    public String getPhraseJoined() {
 	return join(words);
     }
     

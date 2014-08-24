@@ -51,7 +51,7 @@ public class DirectoryWalker {
 		}
 		fr.close();
 		Processor processor = new Processor(text.toString(), basePath, file.getCanonicalPath(), pipeline);
-		if (Processor.fileCount > App.DEBUG_STOP_AFTER) {
+		if (App.DEBUG_STOP_AFTER != -1 && Processor.fileCount > App.DEBUG_STOP_AFTER) {
 		    return;
 		}
 	    }

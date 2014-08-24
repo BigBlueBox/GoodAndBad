@@ -115,6 +115,9 @@ public class Processor {
     }
 
     public boolean randomSample() {
+	if (App.NUM_FOR_SAMPLE == -1) {
+	    return true;
+	}
 	int rand = (int) (App.random.nextInt(App.TOTAL_NUM_FILES / App.NUM_FOR_SAMPLE));
 	return rand == 1;
     }

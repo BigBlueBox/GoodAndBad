@@ -42,17 +42,17 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 public class App {
     public static Random random;
     // number of files after which to abort during debug
-    static int DEBUG_STOP_AFTER = 50;
+    static int DEBUG_STOP_AFTER = -1;
 
     // these two control the random sampling sample size
     static int TOTAL_NUM_FILES = 295000;
-    static int NUM_FOR_SAMPLE = 1000;
+    static int NUM_FOR_SAMPLE = 100;
 
     public static void main(String[] args) throws IOException {
 	random = new Random(1); // same seed during development
 
 	if (args.length < 4) {
-	    System.out.println("Params: server port dbname directoryPath\n");
+	    System.out.println("Params: server port dbname directoryPath numberForSampling\n");
 	} else {
 	    MongoManager.server = args[0];
 	    MongoManager.port = args[1];
@@ -60,6 +60,13 @@ public class App {
 
 	    MongoManager manager = new MongoManager();
 	    App app = new App();
+	    
+	    if (args.length == 5) {
+		Integer num = Integer.valueOf(args[4]);
+		if (num != -1) {
+		    NUM_FOR_SAMPLE = num;
+		}
+	    }
 
 	    app.start(args[3]);
 	    System.out.println("\n\n-------- DONE ---------\n\n");

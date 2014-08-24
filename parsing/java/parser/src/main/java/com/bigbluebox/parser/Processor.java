@@ -197,7 +197,7 @@ public class Processor {
 	for (String wordStem : wordStemCounts.keySet()) {
 	    int count = wordStemCounts.get(wordStem);
 	    System.out.println("WordStem " + wordStem + " count " + count + " / " + documentWordCount
-		    + " = freq " + ((float) count / (float) documentWordCount));
+		    + " = freq " + ((float) count * 1000 / (float) documentWordCount) + " mentions per thousand.");
 	}
 	
 	// This is the coreference link graph

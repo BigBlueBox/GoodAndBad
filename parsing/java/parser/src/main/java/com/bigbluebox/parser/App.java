@@ -52,7 +52,7 @@ public class App {
 	random = new Random(1); // same seed during development
 
 	if (args.length < 4) {
-	    System.out.println("Params: server port dbname directoryPath numberForSampling\n");
+	    System.out.println("Usage: java -jar server port dbname directoryPath numberForSampling\n");
 	} else {
 	    MongoManager.server = args[0];
 	    MongoManager.port = args[1];

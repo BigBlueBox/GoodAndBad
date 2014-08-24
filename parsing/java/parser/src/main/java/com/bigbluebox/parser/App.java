@@ -40,7 +40,13 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  */
 public class App {
     public static Random random;
-    static int DEBUG = 200;
+    // number of files after which to abort during debug
+    static int DEBUG_STOP_AFTER = 50; 
+    
+    // these two control the random sampling sample size
+    static int TOTAL_NUM_FILES = 295000;
+    static int NUM_FOR_SAMPLE = 1000;
+    
 
     public static void main(String[] args) throws IOException {
 	random = new Random(1); // same seed during development

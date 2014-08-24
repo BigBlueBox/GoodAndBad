@@ -114,9 +114,8 @@ public class Processor {
 	}
     }
 
-    /** Select roughly 1/3000 */
     public boolean randomSample() {
-	int rand = (int) (App.random.nextInt(3000));
+	int rand = (int) (App.random.nextInt(App.TOTAL_NUM_FILES / App.NUM_FOR_SAMPLE));
 	return rand == 1;
     }
 

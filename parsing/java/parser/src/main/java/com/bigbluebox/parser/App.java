@@ -16,8 +16,9 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  * Parses a tree of text files. Produces:
  * <ul>
  * <li>noun phrases</li>
+ * <li>named entity phrases and entity types</li>
  * <li>part of speech tagged words</li>
- * <li>noun-verb-object sequences</li>
+ * <li>noun-verb-object sequences (rough yet)</li>
  * <li>word frequency within the document (mentions per 1,000 words)</li>
  * <li>word frequency in corpus overall (mentions per 1,000 words)</li>
  * </ul>

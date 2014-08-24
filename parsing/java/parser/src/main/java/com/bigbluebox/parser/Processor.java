@@ -100,8 +100,8 @@ public class Processor {
 	    long timea = System.currentTimeMillis();
 	    parseDocument(path, filename, text);
 	    long timeb = System.currentTimeMillis();
-	    System.out.println("----- " + canonicalPath + " ------ in " + (timeb - timea) + " ms.");
 	    fileCount++;
+	    System.out.println(" -- " + fileCount + " --- " + canonicalPath + " ------ in " + (timeb - timea) + " ms.");
 	    times.add(new Long(timeb - timea));
 
 	    // if (fileCount > 10) {

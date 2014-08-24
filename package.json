@@ -19,7 +19,9 @@
     "jquery": "^2.1.1",
     "less": "^1.7.4",
     "less-middleware": "^1.0.3",
+    "mux-demux": "^3.7.9",
     "scuttlebutt": "^5.6.8",
-    "shoe": "0.0.15"
+    "shoe": "0.0.15",
+    "underscore": "^1.6.0"
   }
 }

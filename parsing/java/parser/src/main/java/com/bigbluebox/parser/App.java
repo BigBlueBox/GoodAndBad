@@ -35,6 +35,8 @@ public class App {
     }
 
     public void start(String path) throws IOException {
+	DirectoryWalker.basePath = path;
+	
 	// creates a StanfordCoreNLP object, with POS tagging, lemmatization,
 	// named entity recognition, parsing, and coreference resolution
 	Properties props = new Properties();
@@ -52,32 +54,26 @@ public class App {
 	wordStems.addAll(Processor.corpusWordStemCounts.keySet());
 	Collections.sort(wordStems);
 
-	DBObject obj = MongoManager.corpusStatisticsCollection.findOne();
-	if (obj != null) { 
-	    MongoManager.corpusStatisticsCollection.remove(obj);
-	}
-	
-	BasicDBObject wordStemsDBO = new BasicDBObject("name", "CorpusWordStems");
-
-	BasicDBObject summaryStats = new BasicDBObject("name", "CorpusStats")
-		.append("wordCountTotal", "" + Processor.corpusWordCount).append("count", 1)
-		.append("corpusWordStems", wordStemsDBO);
-	
+	List<BasicDBObject> wordSet = new ArrayList<BasicDBObject>();
 	for (String wordStem : wordStems) {
 	    Integer count = Processor.corpusWordStemCounts.get(wordStem);
 	    if (count > 1) {
 		float freq = (float) count * 1000 / (float) Processor.corpusWordCount;
 		
-		BasicDBObject wordDBO = new BasicDBObject("name", wordStem);
+		BasicDBObject wordDBO = new BasicDBObject("wordStem", wordStem);
 		wordDBO.append("wordCount", count);
 		wordDBO.append("wordFrequencyPerThousand", freq);
 		
-		System.out.println(wordStem + " " + count + "/" + Processor.corpusWordCount + "="
-			+ freq
-			+ " mentions per thousand.");
-		wordStemsDBO.append("wordStem", wordDBO);
+//		System.out.println(wordStem + " " + count + "/" + Processor.corpusWordCount + "="
+//			+ freq
+//			+ " mentions per thousand.");
+		wordSet.add(wordDBO);
 	    }
 	}
+	BasicDBObject summaryStats = new BasicDBObject("name", "CorpusStats")
+	.append("wordCountTotal", "" + Processor.corpusWordCount).append("count", 1)
+	.append("corpusWordStems", wordSet);
+	// TODO: Follow up named entities and noun phrases at the corpus level
 
 	MongoManager.corpusStatisticsCollection.insert(summaryStats);
 	System.out.println("CorpusStatisticsCollection contains " +  MongoManager.corpusStatisticsCollection.count() + " documents.");

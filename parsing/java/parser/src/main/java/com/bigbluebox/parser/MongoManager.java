@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
 public class MongoManager {
@@ -21,8 +22,15 @@ public class MongoManager {
 	mongoDb = mongoClient.getDB(rb.getString("dbname"));
 
 	corpusStatisticsCollection = mongoDb.getCollection("corpusStatisticsCollection");
-	documentCollection = mongoDb.getCollection("documentCollection");
+	DBObject obj = MongoManager.corpusStatisticsCollection.findOne();
+	if (obj != null) { 
+	    MongoManager.corpusStatisticsCollection.remove(obj);
+	}
 	
+	documentCollection = mongoDb.getCollection("documentCollection");
+	// clear it every time
+	MongoManager.documentCollection.drop();
+	documentCollection = mongoDb.getCollection("documentCollection");
 
     }
 

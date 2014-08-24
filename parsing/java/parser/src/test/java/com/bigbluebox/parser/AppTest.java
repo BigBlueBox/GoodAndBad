@@ -1,5 +1,7 @@
 package com.bigbluebox.parser;
 
+import java.io.File;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -18,6 +20,10 @@ public class AppTest
     public AppTest( String testName )
     {
         super( testName );
+        String path1 = "C:\\globalhack\\articles";
+        String path2 = "C:\\globalhack";
+        String result = getPath(path1, path2);
+        assertEquals("/articles", getPath(path1, path2));
     }
 
     /**
@@ -29,10 +35,16 @@ public class AppTest
     }
 
     /**
-     * Rigourous Test :-)
      */
     public void testApp()
     {
         assertTrue( true );
+    }
+    private String getPath(String canonicalPath, String basePath) {
+	String path = canonicalPath.substring(basePath.length());
+	if (path.indexOf("\\") != -1) {
+	    path = path.replaceAll("\\\\", "/");
+	}
+	return path;
     }
 }

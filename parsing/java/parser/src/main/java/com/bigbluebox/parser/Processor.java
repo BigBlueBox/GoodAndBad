@@ -1,11 +1,14 @@
 package com.bigbluebox.parser;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.mongodb.BasicDBObject;
 
 import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
@@ -19,14 +22,16 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
 
 /**
- * Processes a single file based on the text and path given; runs NLP on it, and saves
- * the results to MongoDB live along the way.  Also keeps track of word counts, 
- * named entities, noun phrases, and totals for the entire corpus, since it's easy to 
- * calculate during the same pass. 
+ * Processes a single file based on the text and path given; runs NLP on it, and
+ * saves the results to MongoDB live along the way. Also keeps track of word
+ * counts, named entities, noun phrases, and totals for the entire corpus, since
+ * it's easy to calculate during the same pass.
  * 
- * Yep, it's ugly.  No separation of concerns here.  That'd be in a cleanup revision.
+ * Yep, it's ugly. No separation of concerns here. That'd be in a cleanup
+ * revision.
+ * 
  * @author jenny
- *
+ * 
  */
 public class Processor {
     String canonicalPath;
@@ -39,19 +44,41 @@ public class Processor {
 
     Map<String, Integer> nounPhraseCounts = new HashMap<String, Integer>();
     Map<String, NounPhrase> nounPhrases = new HashMap<String, NounPhrase>();
-    
+
     Map<String, Integer> wordStemCounts = new HashMap<String, Integer>();
 
     static Pattern allpunctuation = Pattern.compile("^\\W+$");
     static List<Long> times = new ArrayList<Long>();
     static int fileCount = 0;
-    
+
+    static String pathSeparator = System.getProperty("file.separator");
+
     static Map<String, Integer> corpusWordStemCounts = new HashMap<String, Integer>();
     static int corpusWordCount = 0;
-    
 
-    public Processor(String text, String canonicalPath, StanfordCoreNLP pipeline) {
+    // want the directory portion that came after the basePath
+    private String getDirectoryPortion(String canonicalPath, String basePath) {
+	File f = new File(canonicalPath);
+	String filePlace;
+	if (!f.isDirectory()) {
+	    filePlace = f.getParent();
+	} else {
+	    filePlace = canonicalPath;
+	}
+	String path = filePlace.substring(basePath.length());
+	if (path.indexOf("\\") != -1) {
+	    path = path.replaceAll("\\\\", "/");
+	}
+	return path;
+    }
+    
+    private String getFilePortion(String canonicalPath) {
+	return new File(canonicalPath).getName();
+    }
+
+    public Processor(String text, String basePath, String canonicalPath, StanfordCoreNLP pipeline) {
 	this.canonicalPath = canonicalPath;
+	
 	this.text = text;
 	text = text.replaceAll("\\.", ". ");
 	this.pipeline = pipeline;
@@ -65,9 +92,12 @@ public class Processor {
 	    return;
 	}
 
+	String path = getDirectoryPortion(canonicalPath, basePath);
+	String filename = getFilePortion(canonicalPath);
+
 	try {
 	    long timea = System.currentTimeMillis();
-	    parseDocument(text);
+	    parseDocument(path, filename, text);
 	    long timeb = System.currentTimeMillis();
 	    System.out.println("----- " + canonicalPath + " ------ in " + (timeb - timea) + " ms.");
 	    fileCount++;
@@ -98,7 +128,42 @@ public class Processor {
 	System.out.println("Average time for " + cnt + " files = " + (sum / cnt) + " ms.");
     }
 
-    private void parseDocument(String text) throws ForeignDocumentException {
+    // MongoDB Structure for a document.
+// @formatter:off 
+/*
+    documentCollection: list of documents {
+	  path=
+	  filename=
+	  wordCount=
+	  sentenceCount=
+	  sentences=list{
+		sentenceNumber=
+		words=list{
+			word=
+			wordStem=
+			partOfSpeech=
+		}
+	  }
+	  namedEntities=set{
+		phrase=
+		entityType=
+		count=
+	  }
+	  nounPhrases=set{
+		phrase=
+		count=
+	  }
+	  wordStems=set{
+		wordStem=
+		count=
+		mentionsPerThousand=
+	  }
+	}
+*/    
+    
+// @formatter:on
+
+    private void parseDocument(String path, String filename, String text) throws ForeignDocumentException {
 	int foreignWords = 0;
 
 	// create an empty Annotation just with the given text
@@ -106,7 +171,13 @@ public class Processor {
 
 	// run all Annotators on this text
 	pipeline.annotate(document);
-	
+
+	BasicDBObject documentDBO = new BasicDBObject("path", path);
+	documentDBO.append("filename", filename);
+
+	List<BasicDBObject> sentenceDBOs = new ArrayList<BasicDBObject>();
+	documentDBO.append("sentences", sentenceDBOs);
+
 	// these are all the sentences in this document
 	// a CoreMap is essentially a Map that uses class objects as keys and
 	// has values with custom types
@@ -114,33 +185,48 @@ public class Processor {
 	NamedEntity currentEntity = null;
 	NounPhrase currentNounPhrase = null;
 
+	int sentenceNumber = 0;
 	for (CoreMap sentence : sentences) {
+	    BasicDBObject sentenceDBO = new BasicDBObject("sentenceNumber", sentenceNumber);
+	    sentenceDBOs.add(sentenceDBO);
+	    List<BasicDBObject> wordDBOs = new ArrayList<BasicDBObject>();
+	    sentenceDBO.append("words", wordDBOs);
+
 	    // traversing the words in the current sentence
 	    // a CoreLabel is a CoreMap with additional token-specific methods
 	    for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
+
 		// this is the text of the token
 		String word = token.get(TextAnnotation.class);
+		BasicDBObject wordDBO = new BasicDBObject("word", word);
+		wordDBOs.add(wordDBO);
+
 		Matcher punc = allpunctuation.matcher(word);
 		if (punc.matches()) {
 		    continue; // skip an all-punctuation word
 		}
 		documentWordCount++;
 		corpusWordCount++;
-		
+
 		String wordStem = token.get(LemmaAnnotation.class);
 		Integer c = wordStemCounts.get(wordStem);
-		if (c == null) { c = 0; }
-		wordStemCounts.put(wordStem, c+1);
-		
+		if (c == null) {
+		    c = 0;
+		}
+		wordStemCounts.put(wordStem, c + 1);
+
 		c = corpusWordStemCounts.get(wordStem);
-		if (c == null) { c = 0; }
-		corpusWordStemCounts.put(wordStem, c+1);
-		
+		if (c == null) {
+		    c = 0;
+		}
+		corpusWordStemCounts.put(wordStem, c + 1);
+
 		String pos = token.get(PartOfSpeechAnnotation.class);
 		String namedEntityType = token.get(NamedEntityTagAnnotation.class);
 		// TODO: Save all part-of-speech words to database
-//		System.out.println(word + "\tpos " + pos + ":" + PartOfSpeechLookup.getName(pos)
-//			+ "\tnamed entity " + namedEntityType);
+		// System.out.println(word + "\tpos " + pos + ":" +
+		// PartOfSpeechLookup.getName(pos)
+		// + "\tnamed entity " + namedEntityType);
 		currentEntity = detectNEPhrase(currentEntity, word, namedEntityType);
 		currentNounPhrase = detectNounPhrase(currentNounPhrase, word, pos);
 
@@ -150,6 +236,9 @@ public class Processor {
 		if (foreignWords > 10) {
 		    throw new ForeignDocumentException();
 		}
+		wordDBO.append("wordStem", wordStem);
+		wordDBO.append("partOfSpeech", pos);
+
 	    }
 
 	    // The following steps were too slow for practical use.
@@ -162,7 +251,13 @@ public class Processor {
 	    // SemanticGraph dependencies = sentence
 	    // .get(CollapsedCCProcessedDependenciesAnnotation.class);
 	    // System.out.println("SemanticGraph " + dependencies);
+
+	    sentenceNumber++;
+
 	}
+
+	documentDBO.append("wordCount", documentWordCount);
+	documentDBO.append("sentenceCount", sentences.size());
 
 	// dont lose the last entity in a document
 	if (currentEntity != null) {
@@ -181,25 +276,40 @@ public class Processor {
 	    }
 	    nounPhraseCounts.put(currentNounPhrase.getPhrase(), i + 1);
 	    currentNounPhrase = null;
-	}	
+	}
+
+	// Now persist all the cool stuff we discovered.
+	List<BasicDBObject> namedEntityDBOs = new ArrayList<BasicDBObject>();
+	List<BasicDBObject> nounPhraseDBOs = new ArrayList<BasicDBObject>();
+	List<BasicDBObject> wordStemDBOs = new ArrayList<BasicDBObject>();
+	documentDBO.append("namedEntities", namedEntityDBOs);
+	documentDBO.append("nounPhrases", nounPhraseDBOs);
+	documentDBO.append("wordStems", wordStemDBOs);
 
 	for (NamedEntity entity : namedEntities.values()) {
-	    System.out.println("\tNamedEntity " + entity.getPhrase() + " of type " + entity.getType()
-		    + "\t" + namedEntityCounts.get(entity.getPhrase()) + " times.");
+	    BasicDBObject namedEntityDBO = new BasicDBObject("phrase", entity.getPhrase());
+	    namedEntityDBO.append("entityType", entity.getType());
+	    namedEntityDBO.append("count", namedEntityCounts.get(entity.getPhrase()));
+	    namedEntityDBOs.add(namedEntityDBO);
 	}
 	for (NounPhrase nounPhrase : nounPhrases.values()) {
 	    if (nounPhrase.isValid()) {
-        	    System.out.println("\tNounPhrase " + nounPhrase.getPhrase() + "\t"
-        		    + nounPhraseCounts.get(nounPhrase.getPhrase()) + " times.");
+		BasicDBObject nounPhraseDBO = new BasicDBObject("phrase", nounPhrase.getPhrase());
+		nounPhraseDBO.append("count", nounPhraseCounts.get(nounPhrase.getPhrase()));
+		nounPhraseDBOs.add(nounPhraseDBO);
 	    }
 	}
 
 	for (String wordStem : wordStemCounts.keySet()) {
 	    int count = wordStemCounts.get(wordStem);
-	    System.out.println("WordStem " + wordStem + " count " + count + " / " + documentWordCount
-		    + " = freq " + ((float) count * 1000 / (float) documentWordCount) + " mentions per thousand.");
+	    BasicDBObject wordStemDBO = new BasicDBObject("wordStem", wordStem);
+	    wordStemDBO.append("count", count);
+	    wordStemDBO.append("mentionsPerThousand",((float) count * 1000 / (float) documentWordCount) );
+	    wordStemDBOs.add(wordStemDBO);	    
 	}
 	
+	// Too slow.
+
 	// This is the coreference link graph
 	// Each chain stores a set of mentions that link to each other,
 	// along with a method for getting the most representative mention
@@ -211,10 +321,13 @@ public class Processor {
 	// }
 
 	// return graph;
+	
+	MongoManager.documentCollection.insert(documentDBO);
+	
     }
 
     private NounPhrase detectNounPhrase(NounPhrase currentNounPhrase, String word, String pos) {
-	if (!pos.equals("NN") &&  !pos.equals("NNS")) {
+	if (!pos.equals("NN") && !pos.equals("NNS")) {
 	    if (currentNounPhrase != null && !currentNounPhrase.getPhrase().equals("")) {
 		Integer i = nounPhraseCounts.get(currentNounPhrase.getPhrase());
 		if (i == null) {

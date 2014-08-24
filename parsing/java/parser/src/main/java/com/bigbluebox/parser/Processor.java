@@ -208,7 +208,7 @@ public class Processor {
 		if (word.indexOf(",") != -1) {
 		    word = word.replaceAll(",", "");
 		}
-		if (word.charAt(0) == '-') {
+		if (word != null && word.length() > 0 && word.charAt(0) == '-') {
 		    continue; // skip
 		}
 		if (word.equals("'s")) {

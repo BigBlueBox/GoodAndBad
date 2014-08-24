@@ -203,8 +203,8 @@ public class Processor {
 		if (word.indexOf(",") != -1) {
 		    word = word.replaceAll(",", "");
 		}
-		if (digit.matcher(word).matches()) {
-		    continue; // skip numeric junk
+		if (word.charAt(0) == '-') {
+		    continue; // skip
 		}
 		if (word.equals("'s")) {
 		    continue; // skip

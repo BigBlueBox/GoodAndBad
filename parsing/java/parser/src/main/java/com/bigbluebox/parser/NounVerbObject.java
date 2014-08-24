@@ -7,12 +7,15 @@ public class NounVerbObject {
     List<String> nouns = new ArrayList<String>();
     List<String> verbs = new ArrayList<String>();
     List<String> objects = new ArrayList<String>();
+    boolean seenPrepositionAfterVerb = false;
 
     public NounVerbObject() {
     }
 
     public void addPOS(String word, String pos) {
-	if (pos.charAt(0) == 'N' && verbs.size() > 0) {
+	if (verbs.size() > 0 && pos.equals("IN")) {
+	    seenPrepositionAfterVerb = true;
+    	} else if (pos.charAt(0) == 'N' && verbs.size() > 0 && !seenPrepositionAfterVerb) {
 	    objects.add(word);
 	} else if (pos.charAt(0) == 'N') {
 	    nouns.add(word);

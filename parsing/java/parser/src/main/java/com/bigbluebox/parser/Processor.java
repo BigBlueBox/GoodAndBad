@@ -253,7 +253,7 @@ public class Processor {
 		if (foreignWords > 10) {
 		    throw new ForeignDocumentException();
 		}
-		wordDBO.append("wordStem", wordStem);
+		wordDBO.append("text", wordStem);
 		wordDBO.append("partOfSpeech", pos);
 		
 		nvo.addPOS(wordStem, pos);
@@ -305,14 +305,14 @@ public class Processor {
 	documentDBO.append("wordStems", wordStemDBOs);
 
 	for (NamedEntity entity : namedEntities.values()) {
-	    BasicDBObject namedEntityDBO = new BasicDBObject("phrase", entity.getPhrase());
+	    BasicDBObject namedEntityDBO = new BasicDBObject("text", entity.getPhrase());
 	    namedEntityDBO.append("entityType", entity.getType());
 	    namedEntityDBO.append("count", namedEntityCounts.get(entity.getPhrase()));
 	    namedEntityDBOs.add(namedEntityDBO);
 	}
 	for (NounPhrase nounPhrase : nounPhrases.values()) {
 	    if (nounPhrase.isValid()) {
-		BasicDBObject nounPhraseDBO = new BasicDBObject("phrase", nounPhrase.getPhraseJoined());
+		BasicDBObject nounPhraseDBO = new BasicDBObject("text", nounPhrase.getPhrase());
 		nounPhraseDBO.append("count", nounPhraseCounts.get(nounPhrase.getPhraseJoined()));
 		nounPhraseDBOs.add(nounPhraseDBO);
 	    }
@@ -320,7 +320,7 @@ public class Processor {
 
 	for (String wordStem : wordStemCounts.keySet()) {
 	    int count = wordStemCounts.get(wordStem);
-	    BasicDBObject wordStemDBO = new BasicDBObject("wordStem", wordStem);
+	    BasicDBObject wordStemDBO = new BasicDBObject("text", wordStem);
 	    wordStemDBO.append("count", count);
 	    wordStemDBO.append("mentionsPerThousand",((float) count * 1000 / (float) documentWordCount) );
 	    wordStemDBOs.add(wordStemDBO);	    

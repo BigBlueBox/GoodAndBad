@@ -313,6 +313,7 @@ public class Processor {
 	for (NounPhrase nounPhrase : nounPhrases.values()) {
 	    if (nounPhrase.isValid()) {
 		BasicDBObject nounPhraseDBO = new BasicDBObject("text", nounPhrase.getPhrase());
+		nounPhraseDBO.append("textPhrase", nounPhrase.getPhraseJoined());
 		nounPhraseDBO.append("count", nounPhraseCounts.get(nounPhrase.getPhraseJoined()));
 		nounPhraseDBOs.add(nounPhraseDBO);
 	    }
@@ -346,8 +347,8 @@ public class Processor {
 
     private NounPhrase detectNounPhrase(NounPhrase currentNounPhrase, String word, String pos) {
 	if (!pos.equals("NN") && !pos.equals("NNS")) {
-	    if (currentNounPhrase != null && !currentNounPhrase.getPhrase().equals("")) {
-		Integer i = nounPhraseCounts.get(currentNounPhrase.getPhrase());
+	    if (currentNounPhrase != null && !currentNounPhrase.getPhraseJoined().equals("")) {
+		Integer i = nounPhraseCounts.get(currentNounPhrase.getPhraseJoined());
 		if (i == null) {
 		    i = 0;
 		}

@@ -312,8 +312,8 @@ public class Processor {
 	}
 	for (NounPhrase nounPhrase : nounPhrases.values()) {
 	    if (nounPhrase.isValid()) {
-		BasicDBObject nounPhraseDBO = new BasicDBObject("text", nounPhrase.getPhrase());
-		nounPhraseDBO.append("textPhrase", nounPhrase.getPhraseJoined());
+		BasicDBObject nounPhraseDBO = new BasicDBObject("textArray", nounPhrase.getPhrase());
+		nounPhraseDBO.append("text", nounPhrase.getPhraseJoined());
 		nounPhraseDBO.append("count", nounPhraseCounts.get(nounPhrase.getPhraseJoined()));
 		nounPhraseDBOs.add(nounPhraseDBO);
 	    }

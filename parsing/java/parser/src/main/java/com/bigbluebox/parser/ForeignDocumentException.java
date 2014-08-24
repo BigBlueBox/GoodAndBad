@@ -2,8 +2,9 @@ package com.bigbluebox.parser;
 
 public class ForeignDocumentException extends Exception {
 
-	public ForeignDocumentException() {
-	}
+    private static final long serialVersionUID = 1L;
 
+    public ForeignDocumentException() {
+    }
 
 }

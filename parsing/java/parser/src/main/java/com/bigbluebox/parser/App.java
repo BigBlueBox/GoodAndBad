@@ -9,7 +9,6 @@ import java.util.Properties;
 import java.util.Random;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 

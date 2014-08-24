@@ -30,12 +30,12 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  * word sense disambiguation to some degree.
  * 
  * Noun phrases also make it easier to see a summary of what kinds of documents
- * are in the corpus, including things the user might not expect to search for if
- * they first had to enter text to search. 
+ * are in the corpus, including things the user might not expect to search for
+ * if they first had to enter text to search.
  * 
- * Parser supports random sampling across the entire corpus, so that the sample is 
- * reasonably representative of the entire corpus while not taking the entire processing
- * time.
+ * Parser supports random sampling across the entire corpus, so that the sample
+ * is reasonably representative of the entire corpus while not taking the entire
+ * processing time.
  * 
  */
 public class App {
@@ -71,6 +71,8 @@ public class App {
 	walker.process();
 
 	// ----- corpus level summary -------
+	// @formatter:off
+	/*
 	System.out.println("\nGlobal word stem counts:");
 	List<String> wordStems = new ArrayList<String>();
 	wordStems.addAll(Processor.corpusWordStemCounts.keySet());
@@ -96,7 +98,8 @@ public class App {
 	MongoManager.corpusStatisticsCollection.insert(summaryStats);
 	System.out.println("CorpusStatisticsCollection contains "
 		+ MongoManager.corpusStatisticsCollection.count() + " documents.");
-
+	*/
+	// @formatter:on
     }
 
 }

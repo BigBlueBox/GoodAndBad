@@ -18,6 +18,16 @@ import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
 
+/**
+ * Processes a single file based on the text and path given; runs NLP on it, and saves
+ * the results to MongoDB live along the way.  Also keeps track of word counts, 
+ * named entities, noun phrases, and totals for the entire corpus, since it's easy to 
+ * calculate during the same pass. 
+ * 
+ * Yep, it's ugly.  No separation of concerns here.  That'd be in a cleanup revision.
+ * @author jenny
+ *
+ */
 public class Processor {
     String canonicalPath;
     String text;

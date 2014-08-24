@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
 /**
@@ -31,7 +34,6 @@ public class App {
 	}
     }
 
-
     public void start(String path) throws IOException {
 	// creates a StanfordCoreNLP object, with POS tagging, lemmatization,
 	// named entity recognition, parsing, and coreference resolution
@@ -50,13 +52,36 @@ public class App {
 	wordStems.addAll(Processor.corpusWordStemCounts.keySet());
 	Collections.sort(wordStems);
 
+	DBObject obj = MongoManager.corpusStatisticsCollection.findOne();
+	if (obj != null) { 
+	    MongoManager.corpusStatisticsCollection.remove(obj);
+	}
+	
+	BasicDBObject wordStemsDBO = new BasicDBObject("name", "CorpusWordStems");
+
+	BasicDBObject summaryStats = new BasicDBObject("name", "CorpusStats")
+		.append("wordCountTotal", "" + Processor.corpusWordCount).append("count", 1)
+		.append("corpusWordStems", wordStemsDBO);
+	
 	for (String wordStem : wordStems) {
 	    Integer count = Processor.corpusWordStemCounts.get(wordStem);
 	    if (count > 1) {
-		System.out.println(wordStem + " " + count + "/" + Processor.corpusWordCount + "=" + (float) count * 1000
-		    / (float) Processor.corpusWordCount + " mentions per thousand.");
+		float freq = (float) count * 1000 / (float) Processor.corpusWordCount;
+		
+		BasicDBObject wordDBO = new BasicDBObject("name", wordStem);
+		wordDBO.append("wordCount", count);
+		wordDBO.append("wordFrequencyPerThousand", freq);
+		
+		System.out.println(wordStem + " " + count + "/" + Processor.corpusWordCount + "="
+			+ freq
+			+ " mentions per thousand.");
+		wordStemsDBO.append("wordStem", wordDBO);
 	    }
 	}
+
+	MongoManager.corpusStatisticsCollection.insert(summaryStats);
+	System.out.println("CorpusStatisticsCollection contains " +  MongoManager.corpusStatisticsCollection.count() + " documents.");
+
     }
 
 }
